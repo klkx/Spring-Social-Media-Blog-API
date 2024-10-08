@@ -1,9 +1,13 @@
 package com.example.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -75,5 +79,31 @@ public class SocialMediaController {
         }else{
             return ResponseEntity.status(400).body("The message is blank or over 255 chars.");
         }
+    }
+
+    @GetMapping("/messages")
+    public ResponseEntity getAllMessages(){
+        List<Message> messages = messageService.allMessages();
+        return ResponseEntity.status(200).body(messages);
+    }
+
+    @GetMapping("/messages/{messageId}")
+    public ResponseEntity getMessageById(@PathVariable int messageId){
+        Optional<Message> foundMessage_opt = messageService.findMessageById(messageId);
+        Message message = foundMessage_opt.orElse(null);
+        return ResponseEntity.status(200).body(message);
+    }
+
+    @DeleteMapping("/messages/{messageId}")
+    public ResponseEntity deleteMessageById(@PathVariable int messageId){
+        Optional<Message> foundMessage_opt = messageService.findMessageById(messageId);
+        if(foundMessage_opt.isPresent()){
+            Message deletedMessage = foundMessage_opt.get();
+            messageService.deleteMessageById(messageId);
+            return ResponseEntity.status(200).body(1);
+        }else{
+            return ResponseEntity.status(200).body(null);
+        }
+        
     }
 }
