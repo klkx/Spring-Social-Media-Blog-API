@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.entity.Account;
+import com.example.entity.Message;
+import com.example.repository.AccountRepository;
 import com.example.service.AccountService;
 import com.example.service.MessageService;
 
@@ -21,14 +23,16 @@ import com.example.service.MessageService;
 @RestController
 public class SocialMediaController {
     private AccountService accountService;
+    private MessageService messageService;
     @Autowired
     public SocialMediaController(AccountService accountService, MessageService messageService){
         this.accountService = accountService;
+        this.messageService = messageService;
     }
 
     @PostMapping("/register")
     public ResponseEntity registerAccount(@RequestBody Account account) {
-        if(account.getUsername().length()>0 && account.getPassword().length()>=4){
+        if(account.getUsername().length()>0 || account.getPassword().length()>=4){
             Optional<Account> foundAccount_opt = accountService.findAccountByUsername(account.getUsername());
             if(foundAccount_opt.isEmpty()){
                 Account savedAccount = accountService.registerAccount(account);
@@ -43,6 +47,33 @@ public class SocialMediaController {
         
     }
 
-    
+    @PostMapping("/login")
+    public ResponseEntity loginAccount(@RequestBody Account account){
+        Optional<Account> foundAccount_opt = accountService.findAccountByUsername(account.getUsername());
+        if(foundAccount_opt.isPresent()){
+            Account foundAccount = foundAccount_opt.get();
+            if(foundAccount.getPassword().equals(account.getPassword())){
+                return ResponseEntity.status(200).body(foundAccount);
+            }else{
+                return ResponseEntity.status(401).body("password is incorrect.");
+            }
+        }else{
+            return ResponseEntity.status(401).body("Account is not existed.");
+        }
+    }
 
+    @PostMapping("/messages")
+    public ResponseEntity saveMessage(@RequestBody Message message){
+        if(message.getMessageText().length() > 0 && message.getMessageText().length() <=255){
+            Optional<Account> foundAccount_opt = accountService.findAccountById(message.getPostedBy());
+            if(foundAccount_opt.isPresent()){
+                Message savedMessage = messageService.saveMessage(message);
+                return ResponseEntity.status(200).body(savedMessage);
+            }else{
+                return ResponseEntity.status(400).body("The account of the message is not existed.");
+            }
+        }else{
+            return ResponseEntity.status(400).body("The message is blank or over 255 chars.");
+        }
+    }
 }

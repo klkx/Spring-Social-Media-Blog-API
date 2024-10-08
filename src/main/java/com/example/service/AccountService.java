@@ -24,4 +24,8 @@ public class AccountService {
         return accountRepository.findByUsername(username);
     }
 
+    public Optional<Account> findAccountById(int id){
+        return accountRepository.findById(id);
+    }
+
 }
