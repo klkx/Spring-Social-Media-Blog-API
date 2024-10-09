@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -104,6 +105,30 @@ public class SocialMediaController {
         }else{
             return ResponseEntity.status(200).body(null);
         }
-        
     }
+
+    @PatchMapping("/messages/{messageId}")
+    public ResponseEntity updateMessageById(@PathVariable int messageId, @RequestBody Message message){
+        String messageText = message.getMessageText();
+        Optional<Message> foundMessage_opt = messageService.findMessageById(messageId);
+        if(foundMessage_opt.isPresent()){
+            if(messageText != null && messageText.length() >= 1 && messageText.length() <= 255){
+                Message update_message = foundMessage_opt.get();
+                update_message.setMessageText(messageText);
+                messageService.saveMessage(update_message);
+                return ResponseEntity.status(200).body(1);
+            }else{
+                return ResponseEntity.status(400).body("MessageText is blank or too long for update.");
+            }
+        }else{
+            return ResponseEntity.status(400).body("Message is not existed to update");
+        }
+    }
+    
+    @GetMapping("/accounts/{accountId}/messages")
+    public ResponseEntity getMessagesByAccountId(@PathVariable int accountId){
+        List<Message> messages = messageService.findMessagesByAccountId(accountId);
+        return ResponseEntity.status(200).body(messages);
+    }
+   
 }
